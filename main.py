@@ -13,17 +13,15 @@ import osmnx as ox
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter 
 
-import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
-
 # Matplotlib 한글 폰트 설정
-# "HYGothic 중간" 폰트가 설치되어 있다면 다음 줄을 사용합니다.
-plt.rcParams['font.family'] = 'HYGothic-Medium' # HYGothic 중간의 정확한 폰트 이름을 확인해주세요.
+# HYGothic 중간의 정확한 폰트 이름을 확인해주세요.
+# 이전에 안내드린 폰트 목록 확인 코드를 사용하여 정확한 이름을 찾아야 합니다.
+plt.rcParams['font.family'] = 'HYGothic-Medium' # 예시: 실제 폰트 이름으로 변경 필요
+
 plt.rcParams['axes.unicode_minus'] = False # 마이너스 폰트 깨짐 방지
 
-# 폰트 캐시를 재구축하여 변경사항이 바로 적용되도록 합니다. (선택 사항이지만 문제 해결에 도움될 수 있음)
-fm._rebuild()
-plt.rcParams['axes.unicode_minus'] = False # 마이너스 폰트 깨짐 방지
+# ❗❗❗ fm._rebuild() 줄은 제거합니다. ❗❗❗
+# fm._rebuild() # 이 줄을 제거하세요!
 
 st.set_page_config(page_title="응급의료 이송 및 분석 대시보드", layout="wide")
 st.title("🚑 응급환자 이송 및 응급실 이용 분석")
@@ -366,7 +364,7 @@ if not transport_df.empty:
             plot_data.plot(kind='barh', ax=ax1, color='skyblue') 
             ax1.set_title("시도별 이송 건수")
         
-        # ❗❗❗ 1번 그래프 축 레이블만 영어로 변경 ❗❗❗
+        # 1번 그래프 축 레이블만 영어로 변경
         ax1.set_xlabel("Count")
         ax1.set_ylabel("Province/City")
         
