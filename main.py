@@ -14,8 +14,16 @@ from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter 
 
 # Matplotlib 한글 폰트 설정
-plt.rcParams['font.family'] = 'Malgun Gothic' # Windows 사용자
-# plt.rcParams['font.family'] = 'AppleGothic' # macOS 사용자
+# ❗❗❗ 이곳을 확인하고 당신의 운영체제에 맞는 폰트 설정을 활성화하세요 ❗❗❗
+# Windows 사용자:
+plt.rcParams['font.family'] = 'Malgun Gothic' 
+# macOS 사용자:
+# plt.rcParams['font.family'] = 'AppleGothic'
+# Linux 사용자 (나눔고딕 폰트 설치 필요):
+# plt.rcParams['font.family'] = 'NanumGothic' 
+# 만약 위의 폰트가 없다면, 당신의 시스템에 설치된 다른 한글 폰트 이름을 확인하여 사용하세요.
+# 예시: print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')) 로 폰트 목록 확인 가능
+
 plt.rcParams['axes.unicode_minus'] = False # 마이너스 폰트 깨짐 방지
 
 st.set_page_config(page_title="응급의료 이송 및 분석 대시보드", layout="wide")
@@ -261,7 +269,7 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
             return '세종특별자치시'
             
         korean_sido_list = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
-                            "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", # 강원도 -> 강원특별자치도
+                            "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", 
                             "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도",
                             "제주특별자치도"]
             
