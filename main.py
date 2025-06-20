@@ -349,7 +349,6 @@ else:
 
 
 # -------------------------------
-# -------------------------------
 # 1️⃣ 응급환자 이송 현황 분석
 # -------------------------------
 st.subheader("1️⃣ 응급환자 이송 현황 분석")
@@ -371,9 +370,9 @@ if not transport_df.empty:
             plot_data.plot(kind='barh', ax=ax1, color='skyblue') 
             ax1.set_title("시도별 이송 건수")
         
-        # 1번 그래프 축 레이블을 한글로 변경 (요청에 따라 '건수', '시도'로 다시 변경됨)
-        ax1.set_xlabel("건수")
-        ax1.set_ylabel("시도")
+        # 1번 그래프 축 레이블만 영어로 변경
+        ax1.set_xlabel("Count")
+        ax1.set_ylabel("Province/City")
         
         plt.tight_layout() 
         st.pyplot(fig1)
@@ -382,9 +381,6 @@ if not transport_df.empty:
 else:
     st.warning("이송 데이터가 비어있습니다. 파일 경로와 내용을 확인해주세요.")
 
-# 1번 그래프 축 레이블을 영어로 변경
-        ax1.set_xlabel("Count")
-        ax1.set_ylabel("Province/City")
 # -------------------------------
 # 2️⃣ 시간대별 분석
 # -------------------------------
@@ -567,4 +563,4 @@ else:
 
 
 st.markdown("---")
-st.caption("ⓒ 2025 스마트 응급의료 데이터 분석 프로젝트 - SDG 3.8 보건서비스 접근성 개선")
+st.caption("ⓒ 2025 스마트 응급의료 데이터 분석 프로젝트 - SDG 3.8 보")
