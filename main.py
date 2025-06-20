@@ -385,9 +385,10 @@ if not time_df.empty and region:
         time_row_data = time_row.iloc[0, 1:]
         fig2, ax2 = plt.subplots()
         time_row_data.plot(kind='bar', color='deepskyblue', ax=ax2)
-        ax2.set_ylabel("이용 건수") # 한국어 유지
-        ax2.set_xlabel("시간대") # 한국어 유지
-        ax2.set_title(f"{region} 시간대별 응급실 이용")
+        # 2번 그래프 축 레이블을 영어로 변경
+        ax2.set_ylabel("Usage Count") # '이용 건수' -> 'Usage Count'
+        ax2.set_xlabel("Time of Day") # '시간대' -> 'Time of Day'
+        ax2.set_title(f"{region} 시간대별 응급실 이용") # 제목은 한국어 유지
         st.pyplot(fig2)
     else:
         st.warning(f"'{region}' 지역에 대한 시간대별 데이터가 없습니다.")
@@ -404,16 +405,15 @@ if not month_df.empty and region:
         month_row_data = month_row.iloc[0, 1:]
         fig3, ax3 = plt.subplots()
         month_row_data.plot(kind='line', marker='o', color='seagreen', ax=ax3)
-        ax3.set_ylabel("이용 건수") # 한국어 유지
-        ax3.set_xlabel("월") # 한국어 유지
-        ax3.set_title(f"{region} 월별 응급실 이용")
+        # 3번 그래프 축 레이블을 영어로 변경
+        ax3.set_ylabel("Usage Count") # '이용 건수' -> 'Usage Count'
+        ax3.set_xlabel("Month") # '월' -> 'Month'
+        ax3.set_title(f"{region} 월별 응급실 이용") # 제목은 한국어 유지
         st.pyplot(fig3)
     else:
         st.warning(f"'{region}' 지역에 대한 월별 데이터가 없습니다.")
 else:
     st.warning("월별 데이터 로드에 문제가 있거나 지역이 선택되지 않았습니다.")
-
-
 # -------------------------------
 # 4️⃣ 도로망 그래프 정보
 # -------------------------------
