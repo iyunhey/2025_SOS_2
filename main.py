@@ -13,17 +13,16 @@ import osmnx as ox
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter 
 
-# Matplotlib 한글 폰트 설정
-# ❗❗❗ 이곳을 확인하고 당신의 운영체제에 맞는 폰트 설정을 활성화하세요 ❗❗❗
-# Windows 사용자:
-plt.rcParams['font.family'] = 'Malgun Gothic' 
-# macOS 사용자:
-# plt.rcParams['font.family'] = 'AppleGothic'
-# Linux 사용자 (나눔고딕 폰트 설치 필요):
-# plt.rcParams['font.family'] = 'NanumGothic' 
-# 만약 위의 폰트가 없다면, 당신의 시스템에 설치된 다른 한글 폰트 이름을 확인하여 사용하세요.
-# 예시: print(matplotlib.font_manager.findSystemFonts(fontpaths=None, fontext='ttf')) 로 폰트 목록 확인 가능
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
 
+# Matplotlib 한글 폰트 설정
+# "HYGothic 중간" 폰트가 설치되어 있다면 다음 줄을 사용합니다.
+plt.rcParams['font.family'] = 'HYGothic-Medium' # HYGothic 중간의 정확한 폰트 이름을 확인해주세요.
+plt.rcParams['axes.unicode_minus'] = False # 마이너스 폰트 깨짐 방지
+
+# 폰트 캐시를 재구축하여 변경사항이 바로 적용되도록 합니다. (선택 사항이지만 문제 해결에 도움될 수 있음)
+fm._rebuild()
 plt.rcParams['axes.unicode_minus'] = False # 마이너스 폰트 깨짐 방지
 
 st.set_page_config(page_title="응급의료 이송 및 분석 대시보드", layout="wide")
