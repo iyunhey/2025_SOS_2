@@ -16,7 +16,7 @@ from geopy.extra.rate_limiter import RateLimiter
 # Matplotlib 한글 폰트 설정
 # HYGothic 중간의 정확한 폰트 이름을 확인해주세요.
 # 이전에 안내드린 폰트 목록 확인 코드를 사용하여 정확한 이름을 찾아야 합니다.
-plt.rcParams['font.family'] = 'HYGothic-Medium' # 예시: 실제 폰트 이름으로 변경 필요
+plt.rcParams['font.family'] = 'HYGothic 중간' # 예시: 실제 폰트 이름으로 변경 필요
 
 plt.rcParams['axes.unicode_minus'] = False # 마이너스 폰트 깨짐 방지
 
