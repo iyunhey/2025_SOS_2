@@ -38,7 +38,7 @@ transport_path = "data/정보_01_행정안전부_응급환자이송업(공공데
 time_json_path = "data/정보_SOS_03.json"
 month_json_path = "data/정보_SOS_02.json"
 
-# -------------------------------More actions
+# -------------------------------
 # 데이터 로딩 함수
 # -------------------------------
 @st.cache_data
@@ -47,11 +47,9 @@ def load_transport_data(path):
         st.error(f"파일을 찾을 수 없습니다: {path}")
         return pd.DataFrame()
     
-
     try:
         # 다양한 인코딩과 구분자 시도
         possible_encodings = ['cp949', 'euc-kr', 'utf-8', 'utf-8-sig'] 
-        possible_encodings = ['cp949', 'euc-kr', 'utf-8', 'utf-8-sig']
         possible_seps = [',', ';', '\t', '|']
 
         df = None
@@ -71,7 +69,6 @@ def load_transport_data(path):
                     st.error(f"'{path}' 파일을 여는 중 예상치 못한 오류 발생 (인코딩: {enc}, 구분자: {sep}): {e}")
                     continue
         
-
         st.error(f"'{path}' 파일을 지원되는 어떤 인코딩/구분자로도 로드할 수 없습니다. 파일 내용을 직접 확인해주세요.")
         return pd.DataFrame()
 
@@ -142,26 +139,15 @@ def load_month_data(path):
 
 # osmnx를 사용하여 도로망 그래프를 로드하고 networkx 그래프로 반환하는 함수
 @st.cache_data
-def load_road_network_from_osmnx(place_names):
-    """
-    지정된 하나 이상의 지역에 대한 도로망 데이터를 OpenStreetMap에서 가져와 NetworkX 그래프로 반환합니다.
-    Args:
-        place_names (str or list): 단일 지역 이름 문자열 또는 지역 이름 문자열 리스트.
-    Returns:
-        networkx.MultiDiGraph: 로드된 도로망 그래프 객체, 실패 시 None.
-    """
+def load_road_network_from_osmnx(place_name):
     try:
-        if isinstance(place_names, str):
-            place_names = [place_names] # 단일 문자열도 리스트로 처리
-
-        st.info(f"'{', '.join(place_names)}' 지역의 도로망 데이터를 OpenStreetMap에서 가져오는 중입니다. 잠시 기다려주세요...")
-        # ox.graph_from_place는 단일 장소 또는 장소 목록을 받을 수 있습니다.
-        G = ox.graph_from_place(place_names, network_type='drive', simplify=True, retain_all=True)
-        st.success(f"'{', '.join(place_names)}' 도로망을 NetworkX 그래프로 변환했습니다. 노드 수: {G.number_of_nodes()}, 간선 수: {G.number_of_edges()}")
+        st.info(f"'{place_name}' 지역의 도로망 데이터를 OpenStreetMap에서 가져오는 중입니다. 잠시 기다려주세요...")
+        G = ox.graph_from_place(place_name, network_type='drive', simplify=True, retain_all=True)
+        st.success(f"'{place_name}' 도로망을 NetworkX 그래프로 변환했습니다. 노드 수: {G.number_of_nodes()}, 간선 수: {G.number_of_edges()}")
         return G
 
     except Exception as e:
-        st.error(f"'{', '.join(place_names)}' 도로망 데이터를 OpenStreetMap에서 가져오고 그래프로 변환하는 중 오류 발생: {e}")
+        st.error(f"'{place_name}' 도로망 데이터를 OpenStreetMap에서 가져오고 그래프로 변환하는 중 오류 발생: {e}")
         st.warning("네트워크 연결을 확인하거나, 지역 이름이 정확한지 확인해주세요. 너무 큰 지역을 지정하면 메모리 부족이나 타임아웃이 발생할 수 있습니다.")
         return None
 
@@ -261,11 +247,9 @@ if 'priority_queue' not in st.session_state:
     st.session_state.priority_queue = PriorityQueue()
 if 'current_patient_in_treatment' not in st.session_state:
     st.session_state.current_patient_in_treatment = None
-if 'road_graph' not in st.session_state:
-    st.session_state.road_graph = None
 
 
-# -------------------------------Add commentMore actions
+# -------------------------------
 # 데이터 로드 및 전처리
 # -------------------------------
 transport_df = load_transport_data(transport_path)
@@ -277,10 +261,8 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
             return None
         
         addr_str = str(address).strip() 
-
-        addr_str = str(address).strip()
         parts = addr_str.split(' ')
-        if not parts:
+        if not parts: 
             return None
 
         first_part = parts[0]
@@ -288,18 +270,15 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
         if '세종' in first_part:
             return '세종특별자치시'
             
-
         korean_sido_list = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
                             "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", 
                             "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도",
                             "제주특별자치도"]
+            
         for sido in korean_sido_list:
             if first_part in sido: 
                 return sido 
         
-            if first_part in sido:
-                return sido
-
         for part in parts:
             if isinstance(part, str) and ('특별시' in part or '광역시' in part or '자치시' in part or '자치도' in part):
                 # '강원특별자치도' 등 긴 이름 처리
@@ -310,7 +289,6 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
                     return part # 단일 단어 시도명 (예: 강원도)
                 return part # 서울특별시, 부산광역시 등
         return None 
-        return None
 
     transport_df['시도명'] = transport_df['소재지전체주소'].apply(extract_sido)
 
@@ -339,19 +317,16 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
         st.info(f"유효한 좌표가 없는 {total_addresses - len(transport_df)}개의 이송 기록이 제거되었습니다.")
 
     transport_df.dropna(subset=['시도명'], inplace=True) 
-    transport_df.dropna(subset=['시도명'], inplace=True)
     st.info("'소재지전체주소' 컬럼을 기반으로 '시도명' 컬럼을 생성하고 보정했습니다.")
 elif not transport_df.empty:
     st.warning("'transport_df'에 '소재지전체주소' 컬럼이 없습니다. '시도명' 생성을 건너킵니다.")
-    st.warning("'transport_df'에 '소재지전체주소' 컬럼이 없습니다. '시도명' 생성을 건너뜁니다.")
 
 time_df = load_time_data(time_json_path)
 month_df = load_month_data(month_json_path)
-# Road network는 용인시와 수원시를 함께 로드
-place_for_osmnx = ["Yongin-si, Gyeonggi-do, South Korea", "Suwon-si, Gyeonggi-do, South Korea"] 
+
+# Road network는 용인시로 고정
+place_for_osmnx = "Yongin-si, Gyeonggi-do, South Korea" 
 road_graph = load_road_network_from_osmnx(place_for_osmnx) 
-if road_graph:
-    st.session_state.road_graph = road_graph # 세션 상태에 그래프 저장
 
 
 # -------------------------------
@@ -373,29 +348,26 @@ else:
     region = None
 
 
-# -------------------------------More actions
-# 1️⃣ 응급환자 이송 현황
+# -------------------------------
+# 1️⃣ 응급환자 이송 현황 분석
 # -------------------------------
 st.subheader("1️⃣ 응급환자 이송 현황 분석")
+
 if not transport_df.empty:
     st.dataframe(transport_df.head())
     if st.checkbox("📌 이송 데이터 요약 통계 보기"):
         st.write(transport_df.describe(include='all'))
-    
-    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
 
-    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any():
+    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
         fig1, ax1 = plt.subplots(figsize=(10, 5))
         if region and region in transport_df['시도명'].unique():
             # 특정 지역이 선택된 경우 해당 지역 데이터만 표시 (시도명은 한국어)
             transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue') 
-            transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue')
             ax1.set_title(f"{region} 시도별 이송 건수")
         else:
             # 전체 시도 데이터를 기준으로 집계 및 정렬 (시도명은 한국어)
             plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
             plot_data.plot(kind='barh', ax=ax1, color='skyblue') 
-            transport_df.groupby('시도명').size().sort_values(ascending=False).plot(kind='barh', ax=ax1, color='skyblue')
             ax1.set_title("시도별 이송 건수")
         
         # 1번 그래프 축 레이블만 영어로 변경
@@ -403,10 +375,6 @@ if not transport_df.empty:
         ax1.set_ylabel("Province/City")
         
         plt.tight_layout() 
-
-        ax1.set_xlabel("건수")
-        ax1.set_ylabel("시도")
-        plt.tight_layout()
         st.pyplot(fig1)
     else:
         st.warning("이송 데이터에 '시도명' 컬럼이 없거나 유효한 시도명 값이 없습니다. 데이터 내용을 확인해주세요.")
@@ -458,16 +426,14 @@ else:
 # 4️⃣ 도로망 그래프 정보
 # -------------------------------
 st.subheader("🛣️ 도로망 그래프 정보")
-# 세션 상태에서 로드된 도로망 그래프 사용
-if st.session_state.road_graph: 
-    road_graph_display_name = ', '.join(place_for_osmnx) # 로드된 지역 이름을 표시
-    st.write(f"**로드된 도로망 그래프 (`{road_graph_display_name}`):**") 
-    st.write(f"  - 노드 수: {st.session_state.road_graph.number_of_nodes()}개")
-    st.write(f"  - 간선 수: {st.session_state.road_graph.number_of_edges()}개")
+if road_graph:
+    st.write(f"**로드된 도로망 그래프 (`{place_for_osmnx}`):**") 
+    st.write(f"  - 노드 수: {road_graph.number_of_nodes()}개")
+    st.write(f"  - 간선 수: {road_graph.number_of_edges()}개")
     
     st.write("간단한 도로망 지도 시각화 (노드와 간선):")
     # osmnx 버전 1.2.0 이후부터는 `close` 파라미터가 제거되었습니다.
-    fig, ax = ox.plot_graph(st.session_state.road_graph, show=False, bgcolor='white', node_color='red', node_size=5, edge_color='gray', edge_linewidth=0.5)
+    fig, ax = ox.plot_graph(road_graph, show=False, bgcolor='white', node_color='red', node_size=5, edge_color='gray', edge_linewidth=0.5)
     st.pyplot(fig) 
     st.caption("참고: 전체 도로망은 복잡하여 로딩이 느릴 수 있습니다.")
 
@@ -554,7 +520,7 @@ with st.expander("📝 환자 진단서 작성", expanded=True):
 # -------------------------------
 # 현재 진료중인 환자 정보 표시 섹션
 # -------------------------------
-st.markdown("#### 👨‍⚕️ 현재 진료중인 환자- 2명이상이어야 큐,스택 가능")
+st.markdown("#### 👨‍⚕️ 현재 진료중인 환자")
 if st.session_state.current_patient_in_treatment:
     patient = st.session_state.current_patient_in_treatment
     st.info(
@@ -597,4 +563,4 @@ else:
 
 
 st.markdown("---")
-st.caption("ⓒ 2025 스마트 응급의료 데이터 분석 프로젝트 - SDG")
+st.caption("ⓒ 2025 스마트 응급의료 데이터 분석 프로젝트 - SDG 3.8 보")
