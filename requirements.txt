@@ -6,3 +6,4 @@ networkx
 osmnx
 geopy
 scikit-learn
+chardet
