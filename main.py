@@ -349,51 +349,31 @@ else:
 
 
 # -------------------------------
-# 1️⃣ 응급환자 이송 현황
 # -------------------------------
+# 1️⃣ 응급환자 이송 현황 분석
 # -------------------------------
-
 st.subheader("1️⃣ 응급환자 이송 현황 분석")
 
 if not transport_df.empty:
+    st.dataframe(transport_df.head())
+    if st.checkbox("📌 이송 데이터 요약 통계 보기"):
+        st.write(transport_df.describe(include='all'))
 
-    st.dataframe(transport_df.head())
-
-    if st.checkbox("📌 이송 데이터 요약 통계 보기"):
-
-        st.write(transport_df.describe(include='all'))
-
-
-
-    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any():
-
-        fig1, ax1 = plt.subplots(figsize=(10, 5))
-
-        if region and region in transport_df['시도명'].unique():
-
-            transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue')
-
-            ax1.set_title(f"{region} 시도별 이송 건수")
-
-        else:
-
-            transport_df.groupby('시도명').size().sort_values(ascending=False).plot(kind='barh', ax=ax1, color='skyblue')
-
-            ax1.set_title("시도별 이송 건수")
-
-
-
-        ax1.set_xlabel("건수")
-
-        ax1.set_ylabel("시도")
-
-        plt.tight_layout()
-
-        st.pyplot(fig1)
+    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
+        fig1, ax1 = plt.subplots(figsize=(10, 5))
+        if region and region in transport_df['시도명'].unique():
+            # 특정 지역이 선택된 경우 해당 지역 데이터만 표시 (시도명은 한국어)
+            transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue') 
+            ax1.set_title(f"{region} 시도별 이송 건수")
+        else:
+            # 전체 시도 데이터를 기준으로 집계 및 정렬 (시도명은 한국어)
+            plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
+            plot_data.plot(kind='barh', ax=ax1, color='skyblue') 
+            ax1.set_title("시도별 이송 건수")
         
-        # 1번 그래프 축 레이블만 영어로 변경
-        ax1.set_xlabel("Count")
-        ax1.set_ylabel("Province/City")
+        # 1번 그래프 축 레이블을 한글로 변경 (요청에 따라 '건수', '시도'로 다시 변경됨)
+        ax1.set_xlabel("건수")
+        ax1.set_ylabel("시도")
         
         plt.tight_layout() 
         st.pyplot(fig1)
@@ -402,6 +382,9 @@ if not transport_df.empty:
 else:
     st.warning("이송 데이터가 비어있습니다. 파일 경로와 내용을 확인해주세요.")
 
+# 1번 그래프 축 레이블을 영어로 변경
+        ax1.set_xlabel("Count")
+        ax1.set_ylabel("Province/City")
 # -------------------------------
 # 2️⃣ 시간대별 분석
 # -------------------------------
