@@ -7,4 +7,3 @@ osmnx
 geopy
 scikit-learn
 chardet
-HYGothic 중간
