@@ -367,7 +367,8 @@ if not transport_df.empty:
     st.dataframe(transport_df.head())
     if st.checkbox("📌 이송 데이터 요약 통계 보기"):
         st.write(transport_df.describe(include='all'))
-
+    image_path = "data/photo1.jpg"
+'''
     if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
         fig1, ax1 = plt.subplots(figsize=(10, 5))
         if region and region in transport_df['시도명'].unique():
@@ -390,7 +391,7 @@ if not transport_df.empty:
         st.warning("이송 데이터에 '시도명' 컬럼이 없거나 유효한 시도명 값이 없습니다. 데이터 내용을 확인해주세요.")
 else:
     st.warning("이송 데이터가 비어있습니다. 파일 경로와 내용을 확인해주세요.")
-
+'''
 # -------------------------------
 # 2️⃣ 시간대별 분석
 # -------------------------------
