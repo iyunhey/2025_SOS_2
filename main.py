@@ -331,7 +331,7 @@ elif not transport_df.empty:
     st.warning("'transport_df'에 '소재지전체주소' 컬럼이 없습니다. '시도명' 생성을 건너킵니다.")
     st.warning("'transport_df'에 '소재지전체주소' 컬럼이 없습니다. '시도명' 생성을 건너뜁니다.")
 
-time_df = load_time_data(time_json_path)Add commentMore actions
+time_df = load_time_data(time_json_path)
 month_df = load_month_data(month_json_path)
 
 # Road network는 용인시로 고정
