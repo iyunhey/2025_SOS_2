@@ -250,7 +250,7 @@ if 'current_patient_in_treatment' not in st.session_state:
     st.session_state.current_patient_in_treatment = None
 
 
-# -------------------------------
+# -------------------------------Add commentMore actions
 # 데이터 로드 및 전처리
 # -------------------------------
 transport_df = load_transport_data(transport_path)
@@ -262,8 +262,11 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
             return None
         
         addr_str = str(address).strip() 
+
+        addr_str = str(address).strip()
         parts = addr_str.split(' ')
         if not parts: 
+        if not parts:
             return None
 
         first_part = parts[0]
@@ -271,15 +274,23 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
         if '세종' in first_part:
             return '세종특별자치시'
             
+
         korean_sido_list = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
                             "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", 
                             "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도",
                             "제주특별자치도"]
             
+                                 "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", # 강원도 -> 강원특별자치도
+                                 "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도",
+                                 "제주특별자치도"]
+
         for sido in korean_sido_list:
             if first_part in sido: 
                 return sido 
         
+            if first_part in sido:
+                return sido
+
         for part in parts:
             if isinstance(part, str) and ('특별시' in part or '광역시' in part or '자치시' in part or '자치도' in part):
                 # '강원특별자치도' 등 긴 이름 처리
@@ -290,6 +301,7 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
                     return part # 단일 단어 시도명 (예: 강원도)
                 return part # 서울특별시, 부산광역시 등
         return None 
+        return None
 
     transport_df['시도명'] = transport_df['소재지전체주소'].apply(extract_sido)
 
@@ -318,11 +330,13 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
         st.info(f"유효한 좌표가 없는 {total_addresses - len(transport_df)}개의 이송 기록이 제거되었습니다.")
 
     transport_df.dropna(subset=['시도명'], inplace=True) 
+    transport_df.dropna(subset=['시도명'], inplace=True)
     st.info("'소재지전체주소' 컬럼을 기반으로 '시도명' 컬럼을 생성하고 보정했습니다.")
 elif not transport_df.empty:
     st.warning("'transport_df'에 '소재지전체주소' 컬럼이 없습니다. '시도명' 생성을 건너킵니다.")
+    st.warning("'transport_df'에 '소재지전체주소' 컬럼이 없습니다. '시도명' 생성을 건너뜁니다.")
 
-time_df = load_time_data(time_json_path)
+time_df = load_time_data(time_json_path)Add commentMore actions
 month_df = load_month_data(month_json_path)
 
 # Road network는 용인시로 고정
