@@ -349,7 +349,7 @@ else:
 
 
 # -------------------------------
-# 1️⃣ 응급환자 이송 현황
+# 1️⃣ 응급환자 이송 현황 (테이블만 표시, 그래프 제외)
 # -------------------------------
 st.subheader("1️⃣ 응급환자 이송 현황 분석")
 if not transport_df.empty:
@@ -357,28 +357,27 @@ if not transport_df.empty:
     if st.checkbox("📌 이송 데이터 요약 통계 보기"):
         st.write(transport_df.describe(include='all'))
     
-    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
-        fig1, ax1 = plt.subplots(figsize=(10, 5))
-        if region and region in transport_df['시도명'].unique():
-            # 특정 지역이 선택된 경우 해당 지역 데이터만 표시 (시도명은 한국어)
-            transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue') 
-            ax1.set_title(f"{region} 시도별 이송 건수")
-        else:
-            # 전체 시도 데이터를 기준으로 집계 및 정렬 (시도명은 한국어)
-            plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
-            plot_data.plot(kind='barh', ax=ax1, color='skyblue') 
-            ax1.set_title("시도별 이송 건수")
-        
-        # 1번 그래프 축 레이블만 영어로 변경
-        ax1.set_xlabel("Count")
-        ax1.set_ylabel("Province/City")
-        
-        plt.tight_layout() 
-        st.pyplot(fig1)
-    else:
-        st.warning("이송 데이터에 '시도명' 컬럼이 없거나 유효한 시도명 값이 없습니다. 데이터 내용을 확인해주세요.")
+    # 1번 그래프를 그리는 코드 블록을 제거하거나 주석 처리합니다.
+    # if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
+    #     fig1, ax1 = plt.subplots(figsize=(10, 5))
+    #     if region and region in transport_df['시도명'].unique():
+    #         transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue') 
+    #         ax1.set_title(f"{region} 시도별 이송 건수")
+    #     else:
+    #         plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
+    #         plot_data.plot(kind='barh', ax=ax1, color='skyblue') 
+    #         ax1.set_title("시도별 이송 건수")
+    #     
+    #     ax1.set_xlabel("Count")
+    #     ax1.set_ylabel("Province/City")
+    #     
+    #     plt.tight_layout() 
+    #     st.pyplot(fig1)
+    # else:
+    #     st.warning("이송 데이터에 '시도명' 컬럼이 없거나 유효한 시도명 값이 없습니다. 데이터 내용을 확인해주세요.")
 else:
     st.warning("이송 데이터가 비어있습니다. 파일 경로와 내용을 확인해주세요.")
+
 
 # -------------------------------
 # 2️⃣ 시간대별 분석
@@ -543,7 +542,7 @@ if not st.session_state.priority_queue.is_empty():
     
     col1, col2 = st.columns(2)
     with col1:
-        process_patient = st.button("환자 진료 시작 (가장 응급한 환자)")
+        process_patient = st.button("환자 진료 시작 (가장 응급한 환자)- 2명 이상시 사용")
         if process_patient:
             processed_patient, score = st.session_state.priority_queue.get_highest_priority_patient()
             if processed_patient: 
@@ -562,4 +561,4 @@ else:
 
 
 st.markdown("---")
-st.caption("ⓒ 2025 스마트 응급의료 데이터 분석 프로젝트 - SDG 3.8 보건서비스 접근성 개선")
+st.caption("ⓒ 2025 스마트 응급의료 데이터 분석 프로젝트 - SDG 보건서비스")
