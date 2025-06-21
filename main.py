@@ -367,7 +367,7 @@ if not transport_df.empty:
     st.dataframe(transport_df.head())
     if st.checkbox("📌 이송 데이터 요약 통계 보기"):
         st.write(transport_df.describe(include='all'))
-    image_path = "data/photo1.jpg"
+    image_path = "data/photo1.png"
 '''
     if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
         fig1, ax1 = plt.subplots(figsize=(10, 5))
