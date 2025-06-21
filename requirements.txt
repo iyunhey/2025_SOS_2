@@ -8,3 +8,4 @@ geopy
 scikit-learn
 chardet
 matplotlib.pyplot
+matplotlib.font_manager
