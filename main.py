@@ -1,45 +1,28 @@
-import streamlit as stMore actions
+import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import json
 from collections import deque
 import os
-import chardet # 파일 인코딩 감지용 (데이터 로딩 함수에 이미 포함됨)
+import chardet # chardet 모듈 임포트 유지
 
-# 공간 데이터 및 그래프 처리를 위한 라이브러리
+# 공간 데이터 및 그래프 처리를 위한 라이브러리 (이전 코드에서 다시 포함됨)
 import networkx as nx
 import osmnx as ox
 from geopy.geocoders import Nominatim
-from geopy.extra.rate_limiter import RateLimiter 
+from geopy.extra.rate_limiter import RateLimiter
 
-import matplotlib.pyplot as plt
-import matplotlib.font_manager as fm
+# Matplotlib 한글 폰트 설정 제거 (영어로 변경하므로 필요 없음)
+# plt.rcParams['font.family'] = 'Malgun Gothic'
+# plt.rcParams['font.family'] = 'AppleGothic'
+plt.rcParams['axes.unicode_minus'] = False # 마이너스 폰트 깨짐 방지 (이것은 유지)
 
-plt.rcParams['font.family'] = ['Malgun Gothic', 'AppleGothic', 'Nanum Gothic', 'sans-serif']
-plt.rcParams['axes.unicode_minus'] = False
-
-# Matplotlib 한글 폰트 설정
-# ❗❗❗ 이 부분의 폰트 이름이 당신의 시스템에 설치된 'HYGothic 중간' 폰트의 정확한 이름과 일치하는지 확인하세요.
-# 만약 여전히 깨진다면, 이 이름이 잘못되었을 가능성이 큽니다.
-# 폰트 이름 확인 방법:
-# import matplotlib.font_manager as fm
-# st.write("사용 가능한 HYGothic 폰트:")
-# for font in fm.fontManager.ttflist:
-#     if 'hygothic' in font.name.lower():
-#         st.write(font.name)
-# 위 코드를 임시로 추가하여 정확한 폰트 이름을 찾아 'HYGothic-Medium' 대신 넣어주세요.
-plt.rcParams['font.family'] = 'HYGothic-Medium' 
-
-plt.rcParams['axes.unicode_minus'] = False # 마이너스 폰트 깨짐 방지
-
-# fm._rebuild() 줄은 Matplotlib 최신 버전에서 제거되었으므로 삭제합니다.
-
-st.set_page_config(page_title="응급의료 이송 및 분석 대시보드", layout="wide")
-st.title("🚑 응급환자 이송 및 응급실 이용 분석")
+st.set_page_config(page_title="Emergency Medical Transfer & Analysis Dashboard", layout="wide") # 제목 영어로 변경
+st.title("🚑 Emergency Patient Transfer & Emergency Room Utilization Analysis") # 제목 영어로 변경
 
 # -------------------------------
-# 파일 경로 (실제 경로에 맞게 수정해주세요)
+# 파일 경로
 # -------------------------------
 transport_path = "data/정보_01_행정안전부_응급환자이송업(공공데이터포털).csv"
 time_json_path = "data/정보_SOS_03.json"
@@ -51,12 +34,12 @@ month_json_path = "data/정보_SOS_02.json"
 @st.cache_data
 def load_transport_data(path):
     if not os.path.exists(path):
-        st.error(f"파일을 찾을 수 없습니다: {path}")
+        st.error(f"File not found: {path}") # 메시지 영어로 변경
         return pd.DataFrame()
 
     try:
         # 다양한 인코딩과 구분자 시도
-        possible_encodings = ['cp949', 'euc-kr', 'utf-8', 'utf-8-sig'] 
+        possible_encodings = ['cp949', 'euc-kr', 'utf-8', 'utf-8-sig']
         possible_seps = [',', ';', '\t', '|']
 
         df = None
@@ -64,23 +47,22 @@ def load_transport_data(path):
             for sep in possible_seps:
                 try:
                     df = pd.read_csv(path, encoding=enc, sep=sep, on_bad_lines='skip', engine='python')
-                    # 데이터가 제대로 로드되었는지 확인 (비어있지 않고 컬럼이 충분한지)
                     if not df.empty and len(df.columns) > 1:
-                        st.info(f"'{path}' 파일을 '{enc}' 인코딩, 구분자 '{sep}'로 성공적으로 로드했습니다.")
+                        st.info(f"Successfully loaded '{path}' with '{enc}' encoding and separator '{sep}'.") # 메시지 영어로 변경
                         return df
                     else:
-                        continue # 다음 조합 시도
+                        continue
                 except (UnicodeDecodeError, pd.errors.ParserError) as e:
-                    continue # 디코딩 또는 파싱 오류 시 다음 조합 시도
+                    continue
                 except Exception as e:
-                    st.error(f"'{path}' 파일을 여는 중 예상치 못한 오류 발생 (인코딩: {enc}, 구분자: {sep}): {e}")
+                    st.error(f"Unexpected error while opening '{path}' (encoding: {enc}, separator: {sep}): {e}") # 메시지 영어로 변경
                     continue
 
-        st.error(f"'{path}' 파일을 지원되는 어떤 인코딩/구분자로도 로드할 수 없습니다. 파일 내용을 직접 확인해주세요.")
+        st.error(f"Could not load '{path}' with any supported encoding/separator. Please check file content.") # 메시지 영어로 변경
         return pd.DataFrame()
 
     except Exception as e:
-        st.error(f"'{path}' 파일을 로드하는 중 최상위 오류 발생: {e}")
+        st.error(f"Top-level error loading '{path}': {e}") # 메시지 영어로 변경
         return pd.DataFrame()
 
 @st.cache_data
@@ -88,29 +70,29 @@ def load_time_data(path):
     try:
         with open(path, "r", encoding="utf-8") as f:
             raw = json.load(f)
-        records = raw[4:] # 실제 데이터가 시작하는 부분 (파일 구조에 따라 다름)
+        records = raw[4:]
         time_cols = {
-            'col5': '00-03시', 'col6': '03-06시', 'col7': '06-09시', 'col8': '09-12시',
-            'col9': '12-15시', 'col10': '15-18시', 'col11': '18-21시', 'col12': '21-24시'
+            'col5': '00-03h', 'col6': '03-06h', 'col7': '06-09h', 'col8': '09-12h', # 시간대 영어로 변경
+            'col9': '12-15h', 'col10': '15-18h', 'col11': '18-21h', 'col12': '21-24h'
         }
         rows = []
         for row in records:
             region = row.get('col3')
-            if region == "전체" or not region: # '전체' 또는 빈 지역명 제외
+            if region == "전체" or not region:
                 continue
             values = [int(row.get(c, "0").replace(",", "")) for c in time_cols.keys()]
             rows.append([region] + values)
-        df = pd.DataFrame(rows, columns=['시도'] + list(time_cols.values()))
-        st.info(f"'{path}' JSON 파일을 성공적으로 로드했습니다.")
+        df = pd.DataFrame(rows, columns=['Region'] + list(time_cols.values())) # 컬럼명 영어로 변경
+        st.info(f"Successfully loaded '{path}' JSON file.") # 메시지 영어로 변경
         return df
     except FileNotFoundError:
-        st.error(f"JSON 파일을 찾을 수 없습니다: {path}")
+        st.error(f"JSON file not found: {path}") # 메시지 영어로 변경
         return pd.DataFrame()
     except json.JSONDecodeError as e:
-        st.error(f"'{path}' JSON 파일 디코딩 오류: {e}. 파일 내용이 올바른 JSON 형식인지 확인해주세요.")
+        st.error(f"JSON file decoding error for '{path}': {e}. Please check if the file content is valid JSON.") # 메시지 영어로 변경
         return pd.DataFrame()
     except Exception as e:
-        st.error(f"'{path}' JSON 파일을 로드하는 중 오류 발생: {e}")
+        st.error(f"Error loading '{path}' JSON file: {e}") # 메시지 영어로 변경
         return pd.DataFrame()
 
 @st.cache_data
@@ -118,65 +100,60 @@ def load_month_data(path):
     try:
         with open(path, "r", encoding="utf-8") as f:
             raw = json.load(f)
-        records = raw[4:] # 실제 데이터가 시작하는 부분
+        records = raw[4:]
         month_cols = {
-            'col7': '1월', 'col8': '2월', 'col9': '3월', 'col10': '4월',
-            'col11': '5월', 'col12': '6월', 'col13': '7월', 'col14': '8월',
-            'col15': '9월', 'col16': '10월', 'col17': '11월', 'col18': '12월'
+            'col7': 'Jan', 'col8': 'Feb', 'col9': 'Mar', 'col10': 'Apr', # 월 이름 영어로 변경
+            'col11': 'May', 'col12': 'Jun', 'col13': 'Jul', 'col14': 'Aug',
+            'col15': 'Sep', 'col16': 'Oct', 'col17': 'Nov', 'col18': 'Dec'
         }
         rows = []
         for row in records:
             region = row.get('col3')
-            if region == "전체" or not region: # '전체' 또는 빈 지역명 제외
+            if region == "전체" or not region:
                 continue
             values = [int(row.get(c, "0").replace(",", "")) for c in month_cols.keys()]
             rows.append([region] + values)
-        df = pd.DataFrame(rows, columns=['시도'] + list(month_cols.values()))
-        st.info(f"'{path}' JSON 파일을 성공적으로 로드했습니다.")
+        df = pd.DataFrame(rows, columns=['Region'] + list(month_cols.values())) # 컬럼명 영어로 변경
+        st.info(f"Successfully loaded '{path}' JSON file.") # 메시지 영어로 변경
         return df
     except FileNotFoundError:
-        st.error(f"JSON 파일을 찾을 수 없습니다: {path}")
+        st.error(f"JSON file not found: {path}") # 메시지 영어로 변경
         return pd.DataFrame()
     except json.JSONDecodeError as e:
-        st.error(f"'{path}' JSON 파일 디코딩 오류: {e}. 파일 내용이 올바른 JSON 형식인지 확인해주세요.")
+        st.error(f"JSON file decoding error for '{path}': {e}. Please check if the file content is valid JSON.") # 메시지 영어로 변경
         return pd.DataFrame()
     except Exception as e:
-        st.error(f"'{path}' JSON 파일을 로드하는 중 오류 발생: {e}")
+        st.error(f"Error loading '{path}' JSON file: {e}") # 메시지 영어로 변경
         return pd.DataFrame()
 
-# osmnx를 사용하여 도로망 그래프를 로드하고 networkx 그래프로 반환하는 함수
 @st.cache_data
 def load_road_network_from_osmnx(place_name):
     try:
-        st.info(f"'{place_name}' 지역의 도로망 데이터를 OpenStreetMap에서 가져오는 중입니다. 잠시 기다려주세요...")
+        st.info(f"Fetching road network data for '{place_name}' from OpenStreetMap. Please wait...") # 메시지 영어로 변경
         G = ox.graph_from_place(place_name, network_type='drive', simplify=True, retain_all=True)
-        st.success(f"'{place_name}' 도로망을 NetworkX 그래프로 변환했습니다. 노드 수: {G.number_of_nodes()}, 간선 수: {G.number_of_edges()}")
+        st.success(f"Successfully converted '{place_name}' road network to NetworkX graph. Nodes: {G.number_of_nodes()}, Edges: {G.number_of_edges()}") # 메시지 영어로 변경
         return G
 
     except Exception as e:
-        st.error(f"'{place_name}' 도로망 데이터를 OpenStreetMap에서 가져오고 그래프로 변환하는 중 오류 발생: {e}")
-        st.warning("네트워크 연결을 확인하거나, 지역 이름이 정확한지 확인해주세요. 너무 큰 지역을 지정하면 메모리 부족이나 타임아웃이 발생할 수 있습니다.")
+        st.error(f"Error fetching and converting road network data for '{place_name}' from OpenStreetMap: {e}") # 메시지 영어로 변경
+        st.warning("Please check your network connection, or ensure the place name is accurate. Very large areas may cause memory issues or timeouts.") # 메시지 영어로 변경
         return None
 
-# Geopy를 이용한 주소 지오코딩 함수
 @st.cache_data
 def geocode_address(address, user_agent="emergency_app"):
     geolocator = Nominatim(user_agent=user_agent)
-    # Nominatim 정책에 따라 요청 간 최소 1초 지연 권장
-    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1) 
+    geocode = RateLimiter(geolocator.geocode, min_delay_seconds=1)
 
     try:
         if pd.isna(address) or not isinstance(address, str) or not address.strip():
-            return None, None # 유효하지 않은 주소는 None 반환
-
+            return None, None
+        
         location = geocode(address)
         if location:
             return location.latitude, location.longitude
         else:
             return None, None
     except Exception as e:
-        # 지오코딩 실패 시 오류 메시지 출력 (디버깅용, 실제 앱에서는 주석 처리 권장)
-        # st.warning(f"주소 '{address}' 지오코딩 실패: {e}") 
         return None, None
 
 # -------------------------------
@@ -187,7 +164,7 @@ severity_scores = {
     "중등증": 3,
     "중증": 5,
     "응급": 10,
-    "매우_응급": 20 
+    "매우_응급": 20
 }
 
 # -------------------------------
@@ -197,32 +174,27 @@ import heapq
 
 class PriorityQueue:
     def __init__(self):
-        self.heap = [] # (우선순위 점수, 삽입 순서, 환자 정보) 튜플 저장
-        self.counter = 0 # 삽입 순서 (동일 우선순위 내 선입선출/후입선출 보장용)
+        self.heap = []
+        self.counter = 0
 
-    def insert(self, patient_info, priority_score, queue_type="큐 (선입선출)"):
-        # heapq는 최소 힙이므로, 높은 응급도를 높은 숫자로 정의했다면
-        # 음수로 변환하여 저장하면 가장 높은 응급도(큰 양수)가 가장 작은 음수가 되어 최상위로 옴
+    def insert(self, patient_info, priority_score, queue_type="Queue (FIFO)"): # 기본값 영어로 변경
         adjusted_score = -priority_score
-
-        if queue_type == "큐 (선입선출)":
-            # 점수가 같으면 먼저 들어온 (counter가 작은) 항목이 우선
+        
+        if queue_type == "Queue (FIFO)": # 영어로 변경
             entry = [adjusted_score, self.counter, patient_info]
-        elif queue_type == "스택 (후입선출)":
-            # 점수가 같으면 나중에 들어온 (counter가 큰) 항목의 음수 값이 더 작아지므로 우선
+        elif queue_type == "Stack (LIFO)": # 영어로 변경
             entry = [adjusted_score, -self.counter, patient_info]
         else:
-            # 기본값은 선입선출 (혹시 모를 오류 방지)
             entry = [adjusted_score, self.counter, patient_info]
 
         heapq.heappush(self.heap, entry)
-        self.counter += 1 
+        self.counter += 1
 
     def get_highest_priority_patient(self):
         if not self.heap:
-            return None, None # 큐가 비어있으면 None 반환
+            return None, None
         adjusted_score, _, patient_info = heapq.heappop(self.heap)
-        original_score = -adjusted_score # 원래의 양수 점수로 변환
+        original_score = -adjusted_score
         return patient_info, original_score
 
     def is_empty(self):
@@ -234,29 +206,24 @@ class PriorityQueue:
         adjusted_score, _, patient_info = self.heap[0]
         original_score = -adjusted_score
         return patient_info, original_score
-
+        
     def get_all_patients_sorted(self):
-        # 현재 힙의 모든 항목을 복사하여 정렬된 형태로 반환 (실제 힙 변경 없음)
-        # 힙은 내부적으로 순서가 보장되지만, 전체 리스트로 볼 때는 정렬이 필요
-        # 튜플의 첫 번째 요소(우선순위 점수), 두 번째 요소(삽입 순서) 순으로 정렬됨
-        temp_heap = sorted(self.heap) 
+        temp_heap = sorted(self.heap)
         sorted_patients = []
         for adjusted_score, _, patient_info in temp_heap:
             sorted_patients.append({
-                '이름': patient_info.get('이름', '알 수 없음'),
-                '중증도': patient_info.get('중증도', '알 수 없음'),
-                '응급도 점수': -adjusted_score
+                'Name': patient_info.get('이름', 'Unknown'), # 컬럼명 영어로 변경
+                'Severity': patient_info.get('중증도', 'Unknown'), # 컬럼명 영어로 변경
+                'Priority Score': -adjusted_score # 컬럼명 영어로 변경
             })
         return sorted_patients
 
-# Streamlit session_state에 우선순위 큐 인스턴스 및 현재 진료중인 환자 정보 저장
 if 'priority_queue' not in st.session_state:
     st.session_state.priority_queue = PriorityQueue()
 if 'current_patient_in_treatment' not in st.session_state:
     st.session_state.current_patient_in_treatment = None
 
-
-# -------------------------------Add commentMore actions
+# -------------------------------
 # 데이터 로드 및 전처리
 # -------------------------------
 transport_df = load_transport_data(transport_path)
@@ -266,9 +233,7 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
     def extract_sido(address):
         if pd.isna(address) or not isinstance(address, str) or not address.strip():
             return None
-
-        addr_str = str(address).strip() 
-
+        
         addr_str = str(address).strip()
         parts = addr_str.split(' ')
         if not parts:
@@ -277,40 +242,57 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
         first_part = parts[0]
 
         if '세종' in first_part:
-            return '세종특별자치시'
+            return 'Sejong Special Self-Governing City' # 영어로 변경
 
-
-        korean_sido_list = ["서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
-                            "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도", 
-                            "충청북도", "충청남도", "전라북도", "전라남도", "경상북도", "경상남도",
-                            "제주특별자치도"]
-
-        for sido in korean_sido_list:
-            if first_part in sido: 
-                return sido 
-
-            if first_part in sido:
-                return sido
-
+        korean_sido_list = { # 매핑을 위한 딕셔너리로 변경
+            "서울특별시": "Seoul Metropolitan City",
+            "부산광역시": "Busan Metropolitan City",
+            "대구광역시": "Daegu Metropolitan City",
+            "인천광역시": "Incheon Metropolitan City",
+            "광주광역시": "Gwangju Metropolitan City",
+            "대전광역시": "Daejeon Metropolitan City",
+            "울산광역시": "Ulsan Metropolitan City",
+            "세종특별자치시": "Sejong Special Self-Governing City",
+            "경기도": "Gyeonggi-do",
+            "강원특별자치도": "Gangwon Special Self-Governing Province",
+            "충청북도": "Chungcheongbuk-do",
+            "충청남도": "Chungcheongnam-do",
+            "전라북도": "Jeollabuk-do",
+            "전라남도": "Jeollanam-do",
+            "경상북도": "Gyeongsangbuk-do",
+            "경상남도": "Gyeongsangnam-do",
+            "제주특별자치도": "Jeju Special Self-Governing Province"
+        }
+            
+        for kr_sido, en_sido in korean_sido_list.items():
+            if first_part in kr_sido:
+                return en_sido
+        
         for part in parts:
             if isinstance(part, str) and ('특별시' in part or '광역시' in part or '자치시' in part or '자치도' in part):
                 # '강원특별자치도' 등 긴 이름 처리
                 if '강원' in part or '전라' in part or '충청' in part or '경상' in part or '경기' in part or '제주' in part:
-                    # 두 단어 이상으로 된 시도명 (예: 강원특별자치도) 처리
-                    if len(parts) > 1 and f"{parts[0]}{part}" in korean_sido_list: # 첫 단어와 결합하여 검사
-                        return f"{parts[0]}{part}"
-                    return part # 단일 단어 시도명 (예: 강원도)
-                return part # 서울특별시, 부산광역시 등
-        return None 
+                    combined_name = f"{parts[0]}{part}"
+                    if combined_name in korean_sido_list:
+                        return korean_sido_list[combined_name]
+                    # Fallback for simpler names if not explicitly mapped as combined
+                    for kr_sido, en_sido in korean_sido_list.items():
+                        if part in kr_sido:
+                            return en_sido
+                # 서울특별시, 부산광역시 등 (mapping to English names)
+                for kr_sido, en_sido in korean_sido_list.items():
+                    if part in kr_sido:
+                        return en_sido
         return None
 
     transport_df['시도명'] = transport_df['소재지전체주소'].apply(extract_sido)
+    transport_df.rename(columns={'시도명': 'Province/City'}, inplace=True) # 컬럼명 영어로 변경
 
     # '소재지전체주소'를 이용해 위도, 경도 컬럼 생성
     if '소재지전체주소' in transport_df.columns:
-        st.info("구급차 이송 데이터의 주소를 위도/경도로 변환 중입니다. (시간이 다소 소요될 수 있습니다.)")
+        st.info("Converting addresses in ambulance transfer data to latitude/longitude. (This may take some time.)") # 메시지 영어로 변경
         progress_bar = st.progress(0)
-
+        
         latitudes = []
         longitudes = []
         total_addresses = len(transport_df)
@@ -320,195 +302,170 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
             latitudes.append(lat)
             longitudes.append(lon)
             progress_bar.progress((i + 1) / total_addresses)
+            
+        transport_df['Departure_Latitude'] = latitudes # 컬럼명 영어로 변경
+        transport_df['Departure_Longitude'] = longitudes # 컬럼명 영어로 변경
+        
+        progress_bar.empty()
+        st.success("Address geocoding completed.") # 메시지 영어로 변경
+        
+        transport_df.dropna(subset=['Departure_Latitude', 'Departure_Longitude'], inplace=True) # 컬럼명 영어로 변경
+        st.info(f"{total_addresses - len(transport_df)} transfer records with invalid coordinates have been removed.") # 메시지 영어로 변경
 
-        transport_df['출발_위도'] = latitudes
-        transport_df['출발_경도'] = longitudes
-
-        progress_bar.empty() 
-        st.success("주소 지오코딩이 완료되었습니다.")
-
-        transport_df.dropna(subset=['출발_위도', '출발_경도'], inplace=True)
-        st.info(f"유효한 좌표가 없는 {total_addresses - len(transport_df)}개의 이송 기록이 제거되었습니다.")
-
-    transport_df.dropna(subset=['시도명'], inplace=True) 
-    transport_df.dropna(subset=['시도명'], inplace=True)
-    st.info("'소재지전체주소' 컬럼을 기반으로 '시도명' 컬럼을 생성하고 보정했습니다.")
+    transport_df.dropna(subset=['Province/City'], inplace=True) # 컬럼명 영어로 변경
+    st.info("'Province/City' column created and refined based on '소재지전체주소'.") # 메시지 영어로 변경
 elif not transport_df.empty:
-    st.warning("'transport_df'에 '소재지전체주소' 컬럼이 없습니다. '시도명' 생성을 건너킵니다.")
-    st.warning("'transport_df'에 '소재지전체주소' 컬럼이 없습니다. '시도명' 생성을 건너뜁니다.")
+    st.warning("'transport_df' does not have '소재지전체주소' column. Skipping 'Province/City' creation.") # 메시지 영어로 변경
 
 time_df = load_time_data(time_json_path)
 month_df = load_month_data(month_json_path)
 
-# Road network는 용인시로 고정
-place_for_osmnx = "Yongin-si, Gyeonggi-do, South Korea" 
-road_graph = load_road_network_from_osmnx(place_for_osmnx) 
-
+place_for_osmnx = "Yongin-si, Gyeonggi-do, South Korea"
+road_graph = load_road_network_from_osmnx(place_for_osmnx)
 
 # -------------------------------
 # 사이드바 사용자 상호작용
 # -------------------------------
-st.sidebar.title("사용자 설정")
+st.sidebar.title("User Settings") # 제목 영어로 변경
 if not time_df.empty and not month_df.empty:
-    all_regions = set(time_df['시도']) | set(month_df['시도'])
-    if not transport_df.empty and '시도명' in transport_df.columns:
-        all_regions |= set(transport_df['시도명'].unique()) 
-
+    all_regions = set(time_df['Region']) | set(month_df['Region']) # 컬럼명 영어로 변경
+    if not transport_df.empty and 'Province/City' in transport_df.columns: # 컬럼명 영어로 변경
+        all_regions |= set(transport_df['Province/City'].unique()) # 컬럼명 영어로 변경
+        
     if all_regions:
-        region = st.sidebar.selectbox("지역 선택", sorted(list(all_regions)))
+        region = st.sidebar.selectbox("Select Region", sorted(list(all_regions))) # 메시지 영어로 변경
     else:
-        st.sidebar.warning("데이터에 공통 지역이 없습니다.")
+        st.sidebar.warning("No common regions found in data.") # 메시지 영어로 변경
         region = None
 else:
-    st.sidebar.warning("시간대별 또는 월별 데이터가 로드되지 않았습니다.")
+    st.sidebar.warning("Hourly or monthly data not loaded.") # 메시지 영어로 변경
     region = None
 
-
 # -------------------------------
-# 1️⃣ 응급환자 이송 현황 분석
+# 1️⃣ 응급환자 이송 현황
 # -------------------------------
-st.subheader("1️⃣ 응급환자 이송 현황 분석")
-
+st.subheader("1️⃣ Emergency Patient Transfer Status Analysis") # 제목 영어로 변경
 if not transport_df.empty:
     st.dataframe(transport_df.head())
-
-    if st.checkbox("📌 이송 데이터 요약 통계 보기"):
+    if st.checkbox("📌 View Transfer Data Summary Statistics"): # 메시지 영어로 변경
         st.write(transport_df.describe(include='all'))
-
-    # ✅ 시도명 파생 컬럼 생성
-    transport_df['시도명'] = transport_df['소재지전체주소'].str.extract(r'^(.*?[시도])')
-    transport_df['시도명'] = transport_df['소재지전체주소'].str.extract(r'^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)')
-
-    # ✅ 시도명 기준 시각화
-    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any():
-        fig1, ax1 = plt.subplots(figsize=(10, 6))
-
-        if region and region in transport_df['시도명'].unique():
-            regional_df = transport_df[transport_df['시도명'] == region]
-            plot_data = regional_df.groupby('사업장명').size().sort_values(ascending=False)
-            plot_data.plot(kind='barh', ax=ax1, color='skyblue')
-            ax1.set_title(f"{region} 내 응급이송업체 수")
-            ax1.set_ylabel("기관명")
+    
+    if 'Province/City' in transport_df.columns and transport_df['Province/City'].notna().any(): # 컬럼명 영어로 변경
+        fig1, ax1 = plt.subplots(figsize=(10, 5))
+        if region and region in transport_df['Province/City'].unique(): # 컬럼명 영어로 변경
+            # 그룹화 컬럼을 'Province/City'로 변경
+            transport_df[transport_df['Province/City'] == region].groupby('Province/City').size().plot(kind='barh', ax=ax1, color='skyblue')
+            ax1.set_title(f"Transfer Count by Province/City in {region}") # 제목 영어로 변경
         else:
-            plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
-            plot_data.plot(kind='barh', ax=ax1, color='skyblue')
-            ax1.set_title("시도별 응급이송업체 수")
-            ax1.set_ylabel("시도")
-
-        ax1.set_xlabel("Count")
+            # 그룹화 컬럼을 'Province/City'로 변경
+            transport_df.groupby('Province/City').size().sort_values(ascending=False).plot(kind='barh', ax=ax1, color='skyblue')
+            ax1.set_title("Transfer Count by Province/City") # 제목 영어로 변경
+        
+        ax1.set_xlabel("Count") # 축 레이블 영어로 변경
+        ax1.set_ylabel("Province/City") # 축 레이블 영어로 변경
         plt.tight_layout()
         st.pyplot(fig1)
     else:
-        st.warning("🚫 '시도명' 컬럼이 없거나 유효한 값이 없습니다.")
+        st.warning("Transfer data lacks 'Province/City' column or valid values. Please check data content.") # 메시지 영어로 변경
 else:
-    st.warning("🚫 이송 데이터가 비어있습니다. 파일을 확인하세요.")
+    st.warning("Transfer data is empty. Please check file path and content.") # 메시지 영어로 변경
 
 # -------------------------------
 # 2️⃣ 시간대별 분석
 # -------------------------------
-st.subheader("2️⃣ 시간대별 응급실 이용 현황 (2023)")
+st.subheader("2️⃣ Hourly Emergency Room Utilization (2023)") # 제목 영어로 변경
 if not time_df.empty and region:
-    time_row = time_df[time_df['시도'] == region]
+    time_row = time_df[time_df['Region'] == region] # 컬럼명 영어로 변경
     if not time_row.empty:
         time_row_data = time_row.iloc[0, 1:]
         fig2, ax2 = plt.subplots()
         time_row_data.plot(kind='bar', color='deepskyblue', ax=ax2)
-        # 2번 그래프 축 레이블을 영어로 변경
-        ax2.set_ylabel("Usage Count") # '이용 건수' -> 'Usage Count'
-        ax2.set_xlabel("Time of Day") # '시간대' -> 'Time of Day'
-        ax2.set_title(f"{region} 시간대별 응급실 이용") # 제목은 한국어 유지
+        ax2.set_ylabel("Utilization Count") # 축 레이블 영어로 변경
+        ax2.set_xlabel("Time Block") # 축 레이블 영어로 변경
+        ax2.set_title(f"Hourly ER Utilization in {region}") # 제목 영어로 변경
         st.pyplot(fig2)
     else:
-        st.warning(f"'{region}' 지역에 대한 시간대별 데이터가 없습니다.")
+        st.warning(f"No hourly data for '{region}' region.") # 메시지 영어로 변경
 else:
-    st.warning("시간대별 데이터 로드에 문제가 있거나 지역이 선택되지 않았습니다.")
+    st.warning("Hourly data load issue or no region selected.") # 메시지 영어로 변경
 
 # -------------------------------
 # 3️⃣ 월별 분석
 # -------------------------------
-st.subheader("3️⃣ 월별 응급실 이용 현황 (2023)")
+st.subheader("3️⃣ Monthly Emergency Room Utilization (2023)") # 제목 영어로 변경
 if not month_df.empty and region:
-    month_row = month_df[month_df['시도'] == region]
+    month_row = month_df[month_df['Region'] == region] # 컬럼명 영어로 변경
     if not month_row.empty:
         month_row_data = month_row.iloc[0, 1:]
         fig3, ax3 = plt.subplots()
         month_row_data.plot(kind='line', marker='o', color='seagreen', ax=ax3)
-        # 3번 그래프 축 레이블을 영어로 변경
-        ax3.set_ylabel("Usage Count") # '이용 건수' -> 'Usage Count'
-        ax3.set_xlabel("Month") # '월' -> 'Month'
-        ax3.set_title(f"{region} 월별 응급실 이용") # 제목은 한국어 유지
+        ax3.set_ylabel("Utilization Count") # 축 레이블 영어로 변경
+        ax3.set_xlabel("Month") # 축 레이블 영어로 변경
+        ax3.set_title(f"Monthly ER Utilization in {region}") # 제목 영어로 변경
         st.pyplot(fig3)
     else:
-        st.warning(f"'{region}' 지역에 대한 월별 데이터가 없습니다.")
+        st.warning(f"No monthly data for '{region}' region.") # 메시지 영어로 변경
 else:
-    st.warning("월별 데이터 로드에 문제가 있거나 지역이 선택되지 않았습니다.")
-
+    st.warning("Monthly data load issue or no region selected.") # 메시지 영어로 변경
 
 # -------------------------------
 # 4️⃣ 도로망 그래프 정보
 # -------------------------------
-st.subheader("🛣️ 도로망 그래프 정보")
+st.subheader("🛣️ Road Network Graph Information") # 제목 영어로 변경
 if road_graph:
-    st.write(f"**로드된 도로망 그래프 (`{place_for_osmnx}`):**") 
-    st.write(f"  - 노드 수: {road_graph.number_of_nodes()}개")
-    st.write(f"  - 간선 수: {road_graph.number_of_edges()}개")
-
-    st.write("간단한 도로망 지도 시각화 (노드와 간선):")
-    # osmnx 버전 1.2.0 이후부터는 `close` 파라미터가 제거되었습니다.
+    st.write(f"**Loaded Road Network Graph (`{place_for_osmnx}`):**") # 메시지 영어로 변경
+    st.write(f"  - Number of Nodes: {road_graph.number_of_nodes()}") # 메시지 영어로 변경
+    st.write(f"  - Number of Edges: {road_graph.number_of_edges()}") # 메시지 영어로 변경
+    
+    st.write("Simple Road Network Map Visualization (Nodes and Edges):") # 메시지 영어로 변경
     fig, ax = ox.plot_graph(road_graph, show=False, bgcolor='white', node_color='red', node_size=5, edge_color='gray', edge_linewidth=0.5)
-    st.pyplot(fig) 
-    st.caption("참고: 전체 도로망은 복잡하여 로딩이 느릴 수 있습니다.")
+    st.pyplot(fig)
+    st.caption("Note: The full road network can be complex and slow to load.") # 메시지 영어로 변경
 
 else:
-    st.warning("도로망 그래프 로드에 실패했습니다. 지정된 지역을 확인해주세요.")
-
+    st.warning("Failed to load road network graph. Please check the specified region.") # 메시지 영어로 변경
 
 # -------------------------------
 # 5️⃣ 응급 대기 시뮬레이션 (간이 진단서 기반)
 # -------------------------------
-st.subheader("5️⃣ 응급환자 진단 및 대기열 관리 시뮬레이션")
+st.subheader("5️⃣ Emergency Patient Diagnosis and Queue Management Simulation") # 제목 영어로 변경
 
-# 대기 방식 선택 라디오 버튼 (이제 이 값이 큐 동작에 영향을 미침)
-mode = st.radio("동일 중증도 내 대기 방식 선택", ['큐 (선입선출)', '스택 (후입선출)'])
+mode = st.radio("Select Queueing Method for Same Severity Patients", ['Queue (FIFO)', 'Stack (LIFO)']) # 메시지 영어로 변경
 
+with st.expander("📝 Patient Diagnosis Form", expanded=True): # 메시지 영어로 변경
+    st.write("Enter patient's condition to assess urgency.") # 메시지 영어로 변경
 
-# 진단서 작성 섹션
-with st.expander("📝 환자 진단서 작성", expanded=True):
-    st.write("환자의 상태를 입력하여 응급도를 평가합니다.")
+    patient_name = st.text_input("Patient Name", value="") # 메시지 영어로 변경
 
-    patient_name = st.text_input("환자 이름", value="")
+    q1 = st.selectbox("1. Consciousness Level", ["Clear", "Drowsy", "Stupor (responds to stimuli)", "Coma (unresponsive to stimuli)"]) # 메시지 영어로 변경
+    q2 = st.selectbox("2. Respiratory Distress", ["None", "Mild", "Moderate", "Severe"]) # 메시지 영어로 변경
+    q3 = st.selectbox("3. Major Pain/Bleeding Level", ["None", "Minor", "Moderate", "Severe"]) # 메시지 영어로 변경
+    q4 = st.selectbox("4. Trauma Presence", ["None", "Abrasion/Bruise", "Laceration/Suspected Fracture", "Multiple Trauma/Severe Hemorrhage"]) # 메시지 영어로 변경
 
-    q1 = st.selectbox("1. 의식 상태", ["명료", "기면 (졸림)", "혼미 (자극에 반응)", "혼수 (자극에 무반응)"])
-    q2 = st.selectbox("2. 호흡 곤란 여부", ["없음", "가벼운 곤란", "중간 곤란", "심한 곤란"])
-    q3 = st.selectbox("3. 주요 통증/출혈 정도", ["없음", "경미", "중간", "심함"])
-    q4 = st.selectbox("4. 외상 여부", ["없음", "찰과상/멍", "열상/골절 의심", "다발성 외상/심각한 출혈"])
-
-    submit_diagnosis = st.button("진단 완료 및 큐에 추가")
+    submit_diagnosis = st.button("Complete Diagnosis and Add to Queue") # 메시지 영어로 변경
 
     if submit_diagnosis and patient_name:
         current_priority_score = 0
-        current_severity_level = "경증" 
+        current_severity_level = "경증"
 
-        # 응급도 점수 계산 로직 (임의 설정)
-        if q1 == "기면 (졸림)": current_priority_score += 3
-        elif q1 == "혼미 (자극에 반응)": current_priority_score += 7
-        elif q1 == "혼수 (자극에 무반응)": current_priority_score += 15
+        if q1 == "Drowsy": current_priority_score += 3 # 영어로 변경
+        elif q1 == "Stupor (responds to stimuli)": current_priority_score += 7 # 영어로 변경
+        elif q1 == "Coma (unresponsive to stimuli)": current_priority_score += 15 # 영어로 변경
 
-        if q2 == "가벼운 곤란": current_priority_score += 4
-        elif q2 == "중간 곤란": current_priority_score += 9
-        elif q2 == "심한 곤란": current_priority_score += 20
+        if q2 == "Mild": current_priority_score += 4 # 영어로 변경
+        elif q2 == "Moderate": current_priority_score += 9 # 영어로 변경
+        elif q2 == "Severe": current_priority_score += 20 # 영어로 변경
 
-        if q3 == "경미": current_priority_score += 2
-        elif q3 == "중간": current_priority_score += 6
-        elif q3 == "심함": current_priority_score += 12
+        if q3 == "Minor": current_priority_score += 2 # 영어로 변경
+        elif q3 == "Moderate": current_priority_score += 6 # 영어로 변경
+        elif q3 == "Severe": current_priority_score += 12 # 영어로 변경
 
-        if q4 == "찰과상/멍": current_priority_score += 3
-        elif q4 == "열상/골절 의심": current_priority_score += 8
-        elif q4 == "다발성 외상/심각한 출혈": current_priority_score += 18
-
-        # 총점에 따라 중증도 레벨 결정 (임의 기준)
+        if q4 == "Abrasion/Bruise": current_priority_score += 3 # 영어로 변경
+        elif q4 == "Laceration/Suspected Fracture": current_priority_score += 8 # 영어로 변경
+        elif q4 == "Multiple Trauma/Severe Hemorrhage": current_priority_score += 18 # 영어로 변경
+        
         if current_priority_score >= 35:
-            current_severity_level = "매우_응급"
+            current_severity_level = "매우_응급" # 이 부분은 사용자에게 노출되는 부분이므로 한글 유지
         elif current_priority_score >= 20:
             current_severity_level = "응급"
         elif current_priority_score >= 10:
@@ -518,7 +475,6 @@ with st.expander("📝 환자 진단서 작성", expanded=True):
         else:
             current_severity_level = "경증"
 
-        # 최종 응급도 점수: 정의된 severity_scores에서 가져옴
         final_priority_score = severity_scores.get(current_severity_level, 1)
 
         patient_info = {
@@ -528,61 +484,58 @@ with st.expander("📝 환자 진단서 작성", expanded=True):
             "호흡 곤란": q2,
             "통증/출혈": q3,
             "외상": q4,
-            "계산된 점수": final_priority_score 
+            "계산된 점수": final_priority_score
         }
-
-        # 큐 타입(mode)을 insert 함수에 전달
+        
         st.session_state.priority_queue.insert(patient_info, final_priority_score, queue_type=mode)
-        st.success(f"'{patient_name}' 환자가 '{current_severity_level}' (점수: {final_priority_score}) 상태로 큐에 추가되었습니다.")
-        st.rerun() # UI 업데이트를 위해 다시 실행
+        st.success(f"Patient '{patient_name}' added to queue as '{current_severity_level}' (Score: {final_priority_score}).") # 메시지 영어로 변경
+        st.rerun()
 
     elif submit_diagnosis and not patient_name:
-        st.warning("환자 이름을 입력해주세요.")
+        st.warning("Please enter patient name.") # 메시지 영어로 변경
 
 # -------------------------------
 # 현재 진료중인 환자 정보 표시 섹션
 # -------------------------------
-st.markdown("#### 👨‍⚕️ 현재 진료중인 환자")
+st.markdown("#### 👨‍⚕️ Current Patient Under Treatment") # 제목 영어로 변경
 if st.session_state.current_patient_in_treatment:
     patient = st.session_state.current_patient_in_treatment
     st.info(
-        f"**이름:** {patient['이름']} | "
-        f"**중증도:** {patient['중증도']} (점수: {patient['계산된 점수']}) | "
-        f"**의식:** {patient['의식 상태']} | "
-        f"**호흡:** {patient['호흡 곤란']} | "
-        f"**통증/출혈:** {patient['통증/출혈']} | "
-        f"**외상:** {patient['외상']}"
+        f"**Name:** {patient['이름']} | " # 메시지 영어로 변경
+        f"**Severity:** {patient['중증도']} (Score: {patient['계산된 점수']}) | " # 메시지 영어로 변경
+        f"**Consciousness:** {patient['의식 상태']} | " # 메시지 영어로 변경
+        f"**Respiration:** {patient['호흡 곤란']} | " # 메시지 영어로 변경
+        f"**Pain/Bleeding:** {patient['통증/출혈']} | " # 메시지 영어로 변경
+        f"**Trauma:** {patient['외상']}" # 메시지 영어로 변경
     )
 else:
-    st.info("현재 진료중인 환자가 없습니다.")
+    st.info("No patient currently under treatment.") # 메시지 영어로 변경
 
 # -------------------------------
 # 대기열 현황 및 진료 섹션
 # -------------------------------
-st.markdown("#### 🏥 현재 응급 대기열 현황")
+st.markdown("#### 🏥 Current Emergency Queue Status") # 제목 영어로 변경
 
 if not st.session_state.priority_queue.is_empty():
     st.dataframe(pd.DataFrame(st.session_state.priority_queue.get_all_patients_sorted()))
-
+    
     col1, col2 = st.columns(2)
     with col1:
-        process_patient = st.button("환자 진료 시작 (가장 응급한 환자)- 2몀 이상이어야 합니다")
+        process_patient = st.button("Start Patient Treatment (Highest Priority)") # 메시지 영어로 변경
         if process_patient:
             processed_patient, score = st.session_state.priority_queue.get_highest_priority_patient()
-            if processed_patient: 
-                # 진료 시작된 환자 정보를 session_state에 저장
+            if processed_patient:
                 st.session_state.current_patient_in_treatment = processed_patient
-                st.success(f"**{processed_patient['이름']}** 환자가 진료를 시작합니다. (중증도: {processed_patient['중증도']}, 점수: {score})")
+                st.success(f"**{processed_patient['이름']}** patient begins treatment. (Severity: {processed_patient['중증도']}, Score: {score})") # 메시지 영어로 변경
             else:
-                st.session_state.current_patient_in_treatment = None # 큐가 비었으면 진료중인 환자 없음
-                st.warning("진료할 환자가 없습니다.")
-            st.rerun() 
+                st.session_state.current_patient_in_treatment = None
+                st.warning("No patients to treat.") # 메시지 영어로 변경
+            st.rerun()
     with col2:
-        st.markdown(f"현재 선택된 대기 방식: **{mode}** (동일 중증도 내 적용)")
+        st.markdown(f"Current queueing method: **{mode}** (applied within same severity)") # 메시지 영어로 변경
 else:
-    st.info("현재 응급 대기 환자가 없습니다.")
-    st.session_state.current_patient_in_treatment = None # 큐가 비면 진료중인 환자 없음
-
+    st.info("No patients currently in emergency queue.") # 메시지 영어로 변경
+    st.session_state.current_patient_in_treatment = None
 
 st.markdown("---")
-st.caption("ⓒ 2025 스마트 응급의료 데이터 분석 프로젝트 - SDG")
+st.caption("ⓒ 2025 Smart Emergency Medical Data Analysis Project - SDG 3.8 Improved Access to Health Services") # 메시지 영어로 변경
