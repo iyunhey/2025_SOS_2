@@ -265,7 +265,6 @@ if not transport_df.empty and '소재지전체주소' in transport_df.columns:
 
         addr_str = str(address).strip()
         parts = addr_str.split(' ')
-        if not parts: 
         if not parts:
             return None
 
