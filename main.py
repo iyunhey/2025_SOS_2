@@ -13,6 +13,12 @@ import osmnx as ox
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter 
 
+import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
+
+plt.rcParams['font.family'] = ['Malgun Gothic', 'AppleGothic', 'Nanum Gothic', 'sans-serif']
+plt.rcParams['axes.unicode_minus'] = False
+
 # Matplotlib 한글 폰트 설정
 # ❗❗❗ 이 부분의 폰트 이름이 당신의 시스템에 설치된 'HYGothic 중간' 폰트의 정확한 이름과 일치하는지 확인하세요.
 # 만약 여전히 깨진다면, 이 이름이 잘못되었을 가능성이 큽니다.
@@ -370,7 +376,7 @@ if not transport_df.empty:
         st.write(transport_df.describe(include='all'))
 
     # ✅ 시도명 파생 컬럼 생성
-    transport_df['시도명'] = transport_df['소재지전체주소'].str.extract(r'^(.*?[시도])')
+    transport_df['시도명'] = transport_df['소재지전체주소'].str.extract(r'^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)')
 
     # ✅ 시도명 기준 시각화
     if '시도명' in transport_df.columns and transport_df['시도명'].notna().any():
