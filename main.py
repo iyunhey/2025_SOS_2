@@ -367,19 +367,29 @@ if not transport_df.empty:
     st.dataframe(transport_df.head())
     if st.checkbox("📌 이송 데이터 요약 통계 보기"):
         st.write(transport_df.describe(include='all'))
-    image_path = "data/photo1.png"
-'''
-    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
-        fig1, ax1 = plt.subplots(figsize=(10, 5))
-        if region and region in transport_df['시도명'].unique():
-            # 특정 지역이 선택된 경우 해당 지역 데이터만 표시 (시도명은 한국어)
-            transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue') 
-            ax1.set_title(f"{region} 시도별 이송 건수")
-        else:
-            # 전체 시도 데이터를 기준으로 집계 및 정렬 (시도명은 한국어)
-            plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
-            plot_data.plot(kind='barh', ax=ax1, color='skyblue') 
-            ax1.set_title("시도별 이송 건수")
+        # 시도명 파생 컬럼 생성
+transport_df['시도명'] = transport_df['소재지전체주소'].str.extract(r'^(.*?[시도])')
+
+# 시도명 기준 집계 및 시각화
+if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
+    fig1, ax1 = plt.subplots(figsize=(10, 6))
+
+    if region and region in transport_df['시도명'].unique():
+        regional_df = transport_df[transport_df['시도명'] == region]
+        plot_data = regional_df.groupby('사업장명').size().sort_values(ascending=False)
+        plot_data.plot(kind='barh', ax=ax1, color='skyblue')
+        ax1.set_title(f"{region} 내 응급이송업체 수")
+        ax1.set_ylabel("기관명")
+    else:
+        plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
+        plot_data.plot(kind='barh', ax=ax1, color='skyblue')
+        ax1.set_title("시도별 응급이송업체 수")
+        ax1.set_ylabel("시도")
+
+    ax1.set_xlabel("Count")
+    plt.tight_layout()
+    st.pyplot(fig1)
+
         
         # 1번 그래프 축 레이블만 영어로 변경
         ax1.set_xlabel("Count")
