@@ -18,6 +18,7 @@ from geopy.extra.rate_limiter import RateLimiter
 # 만약 여전히 깨진다면, 이 이름이 잘못되었을 가능성이 큽니다.
 # 폰트 이름 확인 방법:
 # import matplotlib.font_manager as fm
+# st.write("사용 가능한 HYGothic 폰트:")
 # for font in fm.fontManager.ttflist:
 #     if 'hygothic' in font.name.lower():
 #         st.write(font.name)
