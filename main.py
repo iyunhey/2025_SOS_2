@@ -389,8 +389,7 @@ if '시도명' in transport_df.columns and transport_df['시도명'].notna().any
     ax1.set_xlabel("Count")
     plt.tight_layout()
     st.pyplot(fig1)
-
-    else:
+else:
         st.warning("이송 데이터에 '시도명' 컬럼이 없거나 유효한 시도명 값이 없습니다. 데이터 내용을 확인해주세요.")
 else:
     st.warning("이송 데이터가 비어있습니다. 파일 경로와 내용을 확인해주세요.")
