@@ -367,6 +367,19 @@ else:
 # -------------------------------
 # 1️⃣ 응급환자 이송 현황 분석
 # -------------------------------
+# ✅ 데이터 로드
+@st.cache_data
+def load_transport_data():
+    df = pd.read_csv("data/정보_01_행정안전부_응급환자이송업(공공데이터포털).csv", encoding='cp949')
+    # 시도명 파생 컬럼 추출
+    df['시도명'] = df['소재지전체주소'].str.extract(
+        r'^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)'
+    )
+    return df
+
+transport_df = load_transport_data()
+
+# ✅ Streamlit UI
 st.subheader("1️⃣ 응급환자 이송 현황 분석")
 
 if not transport_df.empty:
@@ -375,30 +388,18 @@ if not transport_df.empty:
     if st.checkbox("📌 이송 데이터 요약 통계 보기"):
         st.write(transport_df.describe(include='all'))
 
-    # ✅ 시도명 파생 컬럼 생성
-    transport_df['시도명'] = transport_df['소재지전체주소'].str.extract(r'^(서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)')
-
-    # ✅ 시도명 기준 시각화
-    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any():
-        fig1, ax1 = plt.subplots(figsize=(10, 6))
-
-        if region and region in transport_df['시도명'].unique():
-            regional_df = transport_df[transport_df['시도명'] == region]
-            plot_data = regional_df.groupby('사업장명').size().sort_values(ascending=False)
-            plot_data.plot(kind='barh', ax=ax1, color='skyblue')
-            ax1.set_title(f"{region} 내 응급이송업체 수")
-            ax1.set_ylabel("기관명")
-        else:
-            plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
-            plot_data.plot(kind='barh', ax=ax1, color='skyblue')
-            ax1.set_title("시도별 응급이송업체 수")
-            ax1.set_ylabel("시도")
-
-        ax1.set_xlabel("Count")
+    if transport_df['시도명'].notna().any():
+        st.markdown("**🗺️ 시도별 이송 기관 수**")
+        fig, ax = plt.subplots(figsize=(10, 6))
+        plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
+        plot_data.plot(kind='barh', ax=ax, color='skyblue')
+        ax.set_title("시도별 응급환자 이송업체 수")
+        ax.set_xlabel("기관 수")
+        ax.set_ylabel("시도")
         plt.tight_layout()
-        st.pyplot(fig1)
+        st.pyplot(fig)
     else:
-        st.warning("🚫 '시도명' 컬럼이 없거나 유효한 값이 없습니다.")
+        st.warning("🚫 시도명을 추출할 수 없습니다. 주소 형식을 확인해주세요.")
 else:
     st.warning("🚫 이송 데이터가 비어있습니다. 파일을 확인하세요.")
 
