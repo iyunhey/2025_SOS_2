@@ -347,80 +347,38 @@ else:
     st.sidebar.warning("시간대별 또는 월별 데이터가 로드되지 않았습니다.")
     region = None
 
-# -------------------------------
-
-# 1️⃣ 응급환자 이송 현황 분석
 
 # -------------------------------
-
+# 1️⃣ 응급환자 이송 현황
+# -------------------------------
 st.subheader("1️⃣ 응급환자 이송 현황 분석")
-
-
-
 if not transport_df.empty:
-
-    st.dataframe(transport_df.head())
-
-    if st.checkbox("📌 이송 데이터 요약 통계 보기"):
-
-        st.write(transport_df.describe(include='all'))
-
-
-
-    # 1번 그래프 대신 'data/photo1.jpg' 이미지를 보여줍니다.
-
-    image_path = "data/photo1.png"
-
-
-
-    # os.path.exists를 사용하여 파일 존재 여부 확인 (권장)
-
-    if os.path.exists(image_path):
-
-        st.image(image_path, caption="응급환자 이송 현황 (이미지)", use_column_width=True)
-
-        st.success(f"'{image_path}' 이미지가 성공적으로 표시되었습니다.")
-
-    else:
-
-        st.warning(f"이미지 파일을 찾을 수 없습니다: {image_path}. GitHub 'data' 폴더에 'photo1.jpg'가 있는지 확인해주세요.")
-
-        # 이미지를 찾을 수 없을 때 원래 그래프를 대체로 보여주고 싶다면 아래 코드 블록 활성화
-
-        # if '시도명' in transport_df.columns and transport_df['시도명'].notna().any():
-
-        #     fig1, ax1 = plt.subplots(figsize=(10, 5))
-
-        #     if region and region in transport_df['시도명'].unique():
-
-        #         transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue')
-
-        #         ax1.set_title(f"{region} 시도별 이송 건수")
-
-        #     else:
-
-        #         plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
-
-        #         plot_data.plot(kind='barh', ax=ax1, color='skyblue')
-
-        #         ax1.set_title("시도별 이송 건수")
-
-        #     ax1.set_xlabel("Count")
-
-        #     ax1.set_ylabel("Province/City")
-
-        #     plt.tight_layout()
-
-        #     st.pyplot(fig1) # 그래프 표시
-
-        # else:
-
-        #     st.warning("이송 데이터에 '시도명' 컬럼이 없거나 유효한 시도명 값이 없습니다. 데이터 내용을 확인해주세요.")
-
+    st.dataframe(transport_df.head())
+    if st.checkbox("📌 이송 데이터 요약 통계 보기"):
+        st.write(transport_df.describe(include='all'))
+    
+    if '시도명' in transport_df.columns and transport_df['시도명'].notna().any(): 
+        fig1, ax1 = plt.subplots(figsize=(10, 5))
+        if region and region in transport_df['시도명'].unique():
+            # 특정 지역이 선택된 경우 해당 지역 데이터만 표시 (시도명은 한국어)
+            transport_df[transport_df['시도명'] == region].groupby('시도명').size().plot(kind='barh', ax=ax1, color='skyblue') 
+            ax1.set_title(f"{region} 시도별 이송 건수")
+        else:
+            # 전체 시도 데이터를 기준으로 집계 및 정렬 (시도명은 한국어)
+            plot_data = transport_df.groupby('시도명').size().sort_values(ascending=False)
+            plot_data.plot(kind='barh', ax=ax1, color='skyblue') 
+            ax1.set_title("시도별 이송 건수")
+        
+        # 1번 그래프 축 레이블만 영어로 변경
+        ax1.set_xlabel("Count")
+        ax1.set_ylabel("Province/City")
+        
+        plt.tight_layout() 
+        st.pyplot(fig1)
+    else:
+        st.warning("이송 데이터에 '시도명' 컬럼이 없거나 유효한 시도명 값이 없습니다. 데이터 내용을 확인해주세요.")
 else:
-
-    st.warning("이송 데이터가 비어있습니다. 파일 경로와 내용을 확인해주세요.")
-
+    st.warning("이송 데이터가 비어있습니다. 파일 경로와 내용을 확인해주세요.")
 
 # -------------------------------
 # 2️⃣ 시간대별 분석
